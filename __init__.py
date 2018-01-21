@@ -1,9 +1,16 @@
-"""
-repl --- MIT Scheme and SML REPL
-================================
+"""REPL for your Python, MIT Scheme and Standard ML files"""
+__pluginname__ = "REPL"
+__author__ = "Marco Laspe"
+__credits__ = ["Andrei Kopats", "Bryan A. Jones"]
+__license__ = "GPL3"
+__version__ = "0.1.0"
+__maintainer__ = "Marco Laspe"
+__email__ = "marco@rockiger.com"
+__status__ = "Beta"
+# This plugin is a copy of the Enki repl plugin
+# https://github.com/andreikop/enki/tree/master/enki/plugins/repl
 
-File contains integration with the core
-"""
+import os.path
 
 from PyQt5.QtCore import QObject, Qt
 from PyQt5.QtGui import QIcon
@@ -11,6 +18,8 @@ from PyQt5.QtGui import QIcon
 from enki.core.core import core
 from enki.core.uisettings import ChoiseOption, TextOption
 
+# Constants
+ICON_PATH = QIcon(os.path.join(os.path.dirname(__file__), 'terminal.svg'))
 
 class _AbstractReplPlugin(QObject):
     """Base class for language-specific REPL sub-plugins
@@ -137,7 +146,19 @@ class _AbstractReplPlugin(QObject):
         from .repl import SettingsWidget
         widget = SettingsWidget(dialog)
 
-        dialog.appendPage("REPL/%s" % self._FULL_NAME, widget, self._icon())
+
+        # try to get REPL Page
+        try:
+            settingsPage = dialog._pageForItem['REPL']
+            print(settingsPage)
+        except KeyError:
+            settingsPage = dialog.createSettingsPage("REPL Settings")
+            dialog.appendPage("REPL", settingsPage,
+                              QIcon.fromTheme("utilities-terminal",
+                                              QIcon(ICON_PATH)))
+
+        widget.header.setText("<h3>%s</h3>" % self._FULL_NAME)
+        settingsPage.addWidget(widget)
 
         # Options
         dialog.appendOption(ChoiseOption(dialog, core.config(), "Modes/%s/Enabled" % self._LANGUAGE,
